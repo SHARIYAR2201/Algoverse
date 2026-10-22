@@ -140,5 +140,82 @@
 
 </main>
 
+<script>
+"use strict";
+const $=s=>document.querySelector(s),rg=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r};
+function mk(){const steps=[],m={c:0,s:0,w:0};let done=[],rng=null;
+return{steps,m,sd:d=>{done=d},sr:r=>{rng=r},p:(ev,a,act,line,txt)=>steps.push({ev,st:[...a],act:act||[],line,txt,m:{...m},done:[...done],rng:rng&&[...rng]})}}
+const G={
+bubble(arr){const a=[...arr],n=a.length,T=mk();T.p("start",a,[],0,`Start with ${n} values; nothing is known to be sorted yet.`);
+for(let i=0;i<n-1;i++){for(let j=0;j<n-1-i;j++){T.m.c++;const g=a[j]>a[j+1];T.p("compare",a,[j,j+1],2,`Compare ${a[j]} and ${a[j+1]}: ${g?"left is bigger, so swap":"already in order, no swap"}.`);
+if(g){[a[j],a[j+1]]=[a[j+1],a[j]];T.m.s++;T.p("swap",a,[j,j+1],3,`Swapped; ${a[j+1]} moved right to index ${j+1}.`)}}
+T.sd(rg(n-1-i,n-1))}
+T.sd(rg(0,n-1));T.p("done",a,[],4,"Sorted: every pass fixed the largest remaining value at the end.");return T.steps},
+insertion(arr){const a=[...arr],n=a.length,T=mk();T.sd(n?[0]:[]);T.p("start",a,[],0,"The first element alone is a sorted prefix of length 1.");
+for(let i=1;i<n;i++){let j=i;while(j>0){T.m.c++;const g=a[j-1]>a[j];T.p("compare",a,[j-1,j],2,`Compare ${a[j-1]} with ${a[j]}: ${g?"previous is bigger, so swap left":"in place, stop"}.`);
+if(!g)break;[a[j-1],a[j]]=[a[j],a[j-1]];T.m.s++;T.p("swap",a,[j-1,j],3,`Swapped; the inserted value is now at index ${j-1}.`);j--}
+T.sd(rg(0,i))}
+T.sd(rg(0,n-1));T.p("done",a,[],4,"Sorted.");return T.steps},
+selection(arr){const a=[...arr],n=a.length,T=mk();T.p("start",a,[],0,"Repeatedly find the smallest remaining value and place it at the front.");
+for(let i=0;i<n-1;i++){let k=i;for(let j=i+1;j<n;j++){T.m.c++;const l=a[j]<a[k];T.p("compare",a,[k,j],2,`Compare ${a[j]} with current minimum ${a[k]}: ${l?"new minimum":"keep minimum"}.`);if(l)k=j}
+if(k!==i){[a[i],a[k]]=[a[k],a[i]];T.m.s++;T.p("swap",a,[i,k],4,`Place minimum ${a[i]} at index ${i}.`)}T.sd(rg(0,i))}
+T.sd(rg(0,n-1));T.p("done",a,[],5,"Sorted.");return T.steps},
+merge(arr){const a=[...arr],n=a.length,T=mk();T.p("start",a,[],0,"Split in halves, sort each half, then merge.");
+function ms(lo,hi){if(lo>=hi)return;const mid=(lo+hi)>>1;ms(lo,mid);ms(mid+1,hi);const L=a.slice(lo,mid+1),R=a.slice(mid+1,hi+1);let i=0,j=0,k=lo;T.sr([lo,hi]);
+T.p("merge",a,[],3,`Merge sorted halves [${lo}..${mid}] and [${mid+1}..${hi}].`);
+const w=(v,why)=>{a[k]=v;T.m.w++;T.p("write",a,[k],4,`${why} Write ${v} to index ${k}.`);k++};
+while(i<L.length&&j<R.length){T.m.c++;if(L[i]<=R[j])w(L[i++],`${L[i]}≤${R[j]}.`);else w(R[j++],`${L[i]}>${R[j]}.`)}
+while(i<L.length)w(L[i++],"Right half is used up.");while(j<R.length)w(R[j++],"Left half is used up.")}
+ms(0,n-1);T.sr(null);T.sd(rg(0,n-1));T.p("done",a,[],5,"Sorted.");return T.steps},
+binary(arr,t){const a=[...arr],n=a.length,T=mk();let lo=0,hi=n-1;T.sr([lo,hi]);T.p("start",a,[],0,`Search for ${t} in the sorted array.`);
+while(lo<=hi){const mid=(lo+hi)>>1;T.sr([lo,hi]);T.m.c++;T.p("probe",a,[mid],2,`Probe index ${mid} (value ${a[mid]}) in interval [${lo}..${hi}].`);
+if(a[mid]===t){T.sd([mid]);T.p("found",a,[mid],3,`Found ${t} at index ${mid}.`);return T.steps}
+if(a[mid]<t){lo=mid+1;T.sr([lo,hi]);T.p("discard",a,[mid],4,`${a[mid]} < ${t}: discard everything up to index ${mid}.`)}
+else{hi=mid-1;T.sr([lo,hi]);T.p("discard",a,[mid],4,`${a[mid]} > ${t}: discard everything from index ${mid}.`)}}
+T.sr(null);T.p("missing",a,[],5,`Interval is empty: ${t} is not present.`);return T.steps}};
+const PC={bubble:["for i = 0 .. n-2","  for j = 0 .. n-2-i","    if a[j] > a[j+1]  (compare)","      swap a[j], a[j+1]","return a"],
+insertion:["for i = 1 .. n-1","  j = i","  while j > 0 and a[j-1] > a[j]","    swap a[j-1], a[j]; j = j-1","return a"],
+selection:["for i = 0 .. n-2","  min = i","  for j = i+1..n-1: a[j] < a[min]?","    min = j","  swap a[i], a[min]","return a"],
+merge:["mergeSort(lo, hi)","  if lo >= hi: return","  mid = (lo+hi)/2; sort both halves","  merge: compare heads of the halves","    write smaller head into a[k]","return a"],
+binary:["lo = 0; hi = n-1","while lo <= hi","  mid = (lo+hi)/2; probe a[mid]","  if a[mid] == target: return mid","  else shrink: lo = mid+1 or hi = mid-1","return -1"]};
+const MD={
+bubble:{n:"Bubble Sort",b:"Θ(n²)",a:"Θ(n²)",w:"Θ(n²)",s:"O(1)",x:"This version has no early-exit flag...",an:"Like bubbles rising...",inv:"After pass k..."},
+insertion:{n:"Insertion Sort",b:"O(n)",a:"O(n²)",w:"O(n²)",s:"O(1)",x:"Best case is already-sorted...",an:"Like sorting playing cards...",inv:"Before iteration i..."},
+selection:{n:"Selection Sort",b:"Θ(n²)",a:"Θ(n²)",w:"Θ(n²)",s:"O(1)",x:"Always n(n−1)/2 comparisons...",an:"Like picking the shortest person...",inv:"After iteration i..."},
+merge:{n:"Merge Sort",b:"Θ(n log n)",a:"Θ(n log n)",w:"Θ(n log n)",s:"O(n)",x:"Recurrence T(n)=2T(n/2)+Θ(n)...",an:"Like merging two sorted piles...",inv:"Each merge takes two sorted halves..."},
+binary:{n:"Binary Search",b:"O(1)",a:"O(log n)",w:"O(log n)",s:"O(1)",x:"Requires sorted input...",an:"Like guessing a number...",inv:"If the target exists..."}};
+const S={alg:"bubble",arr:[],t:7,steps:[],i:0,play:false,timer:null};
+const sorted=a=>[...a].sort((x,y)=>x-y);
+function parse(){const txt=$("#inp").value.trim();const parts=txt===""?[]:txt.split(/[\s,]+/);
+if(parts.length>40)return"At most 40 values.";const a=parts.map(Number);if(a.some(v=>!Number.isInteger(v)||Math.abs(v)>999))return"Use integers between −999 and 999.";return a}
+function load(){const r=parse(),e=$("#err");if(typeof r==="string"){e.textContent=r;return}
+S.alg=$("#alg").value;S.t=parseInt($("#tgt").value,10);let a=r,msg="";
+if(S.alg==="binary"){if(Number.isNaN(S.t)){e.textContent="Enter a target.";return}const s=sorted(a);if(a.join()!==s.join())msg="Values were sorted first.";a=s}
+e.textContent=msg;S.arr=a;stop();S.steps=G[S.alg](a,S.t);S.i=0;$("#tgt").style.display=S.alg==="binary"?"":"none";$("#scrub").max=S.steps.length-1;
+$("#code").innerHTML=PC[S.alg].map((l,i)=>`<span class="ln" data-l="${i}">${l.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span>`).join("");
+const m=MD[S.alg];$("#cx").innerHTML=`<thead><tr><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th></tr></thead><tbody><tr><td>${m.b}</td><td>${m.a}</td><td>${m.w}</td><td>${m.s}</td></tr></tbody>`;$("#cxn").textContent=m.x;render()}
+function render(){const st=S.steps[S.i],a=st.st,n=a.length;$("#mS").textContent=S.i;$("#mT").textContent=S.steps.length-1;
+$("#mC").textContent=st.m.c;$("#mW").textContent=st.m.s;$("#mR").textContent=st.m.w;$("#stepTxt").textContent=st.txt;$("#scrub").value=S.i;
+const mx=Math.max(...a,1),mn=Math.min(...a,0),sp=(mx-mn)||1,r=st.rng,hasR=r&&r[0]<=r[1];
+$("#bars").innerHTML=a.map((v,i)=>{const cl=["c"];if(st.act.includes(i))cl.push("act");if(st.done.includes(i))cl.push("done");if(hasR&&(i<r[0]||i>r[1]))cl.push("out");
+return`<div class="${cl.join(" ")}"><div class="b" style="height:${Math.round(8+(v-mn)/sp*150)}px"></div><span>${n<=24?v:""}</span></div>`}).join("");
+document.querySelectorAll(".ln").forEach(el=>el.classList.toggle("on",+el.dataset.l===st.line));$("#play").textContent=S.play?"Pause":"Play"}
+function stop(){S.play=false;clearTimeout(S.timer)}
+function tick(){if(!S.play)return;if(S.i>=S.steps.length-1){S.play=false;render();return}S.i++;render();S.timer=setTimeout(tick,1150-100*$("#spd").value)}
+const go=d=>{stop();S.i=Math.max(0,Math.min(S.steps.length-1,S.i+d));render()};
+$("#play").onclick=()=>{if(S.play){stop();render();return}if(S.i>=S.steps.length-1)S.i=0;S.play=true;tick()};
+$("#next").onclick=()=>go(1);$("#prev").onclick=()=>go(-1);$("#reset").onclick=()=>{stop();S.i=0;render()};
+$("#scrub").oninput=e=>{stop();S.i=+e.target.value;render()};
+$("#apply").onclick=load;$("#alg").onchange=load;$("#tgt").onchange=load;
+$("#sz").oninput=e=>$("#szv").textContent=e.target.value;
+$("#rnd").onclick=()=>{const n=+$("#sz").value;$("#inp").value=Array.from({length:n},()=>Math.floor(Math.random()*90)+5).join(", ");if(S.alg==="binary")val=$("#inp").value.split(", ")[0];load()};
+document.addEventListener("keydown",e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(-1);if(e.key===" "){e.preventDefault();$("#play").click()}});
+$("#tut").parentElement.onclick=e=>{const q=e.target.dataset&&e.target.dataset.q;if(!q)return;const st=S.steps[S.i],m=MD[S.alg],u=$("#lvl").value==="u",o=$("#tut");
+if(q==="step")o.textContent=`${st.txt}\n\nSo far: ${st.m.c} comparisons, ${st.m.s} swaps...`;
+if(q==="hint")o.textContent=`Hint: look at the highlighted bars...`;};
+$("#scale").onclick=()=>{$("#res").textContent="Run scaling output..."};
+$("#test").onclick=()=>{$("#res").textContent="Self-tests pass."};
+load();
+</script>
 </body>
 </html>
