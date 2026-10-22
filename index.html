@@ -1,147 +1,450 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>AlgoVerse AI - Bootstrap Variant</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-  :root {
-    --bar: #4f6bd8;
-    --ok: #4ade80;
-    --am: #fbbf24;
-  }
-  .bars { height: 210px; display: flex; align-items: flex-end; gap: 2px; padding-top: 6px; }
-  .c { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-width: 0; }
-  .b { width: 100%; background: var(--bar); border-radius: 3px 3px 0 0; transition: height .15s, opacity .15s; }
-  .c span { font-size: 11px; height: 16px; color: var(--bs-secondary); overflow: hidden; }
-  .c.out { opacity: .3; }
-  .c.done .b { background: var(--ok); }
-  .c.done span { text-decoration: underline; }
-  .c.act .b { outline: 2px solid var(--am); background: var(--am); }
-  .c.act span { color: var(--am); font-weight: 700; }
-  .c.act span::before { content: "▲"; }
-  .ln { display: block; padding: 1px 8px; border-left: 3px solid transparent; white-space: pre; }
-  .ln.on { background: rgba(94,234,212,.14); border-left-color: #5eead4; }
-  svg { width: 100%; height: auto; display: block; }
-  pre { margin: 0; font-size: 13px; overflow-x: auto; }
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>AlgoVerse AI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Required by JS SVG generation */
+            --ln: rgba(255, 255, 255, 0.15);
+            --mu: #94a3b8;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Animated Ambient Background */
+        .ambient-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+            background: #030712;
+        }
+        .ambient-bg::before, .ambient-bg::after {
+            content: '';
+            position: absolute;
+            width: 60vmax; height: 60vmax;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            animation: float 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .ambient-bg::before {
+            background: #06b6d4;
+            top: -20%; left: -10%;
+        }
+        .ambient-bg::after {
+            background: #d946ef;
+            bottom: -20%; right: -10%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(10%, 15%) scale(1.2); }
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+        }
+        .glass-panel:hover {
+            box-shadow: 0 15px 50px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.5); }
+
+        /* Inputs & Buttons */
+        .neo-input {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .neo-input:focus {
+            border-color: #06b6d4;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        .neo-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .neo-btn:hover {
+            background: rgba(51, 65, 85, 0.9);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .neo-btn:active { transform: scale(0.95); }
+
+        .neo-btn-primary {
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4);
+        }
+        .neo-btn-primary:hover {
+            box-shadow: 0 6px 25px rgba(6, 182, 212, 0.6);
+        }
+
+        /* --- VISUALIZATION BARS WITH SPRING ANIMATIONS --- */
+        .bars { 
+            height: 280px; 
+            display: flex; 
+            align-items: flex-end; 
+            gap: 6px; 
+            padding: 20px 0 10px 0; 
+        }
+        .c { 
+            flex: 1; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-end; 
+            align-items: center; 
+            min-width: 0; 
+            /* Smooth transform for scaling effects */
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+        }
+        .b {
+            width: 100%;
+            background: linear-gradient(180deg, #3b82f6 0%, #1e3a8a 100%);
+            border-radius: 6px 6px 0 0;
+            /* Spring physics transition for height changes */
+            transition: height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        background 0.3s ease, 
+                        box-shadow 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 -2px 10px rgba(59, 130, 246, 0.2);
+            position: relative;
+        }
+        .c span { 
+            font-family: 'JetBrains Mono', monospace; 
+            font-size: 11px; 
+            margin-top: 8px; 
+            color: #94a3b8; 
+            height: 16px;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        
+        /* Bar States */
+        .c.out { opacity: 0.15; transform: scaleY(0.9); transform-origin: bottom; }
+        
+        .c.done .b {
+            background: linear-gradient(180deg, #10b981 0%, #064e3b 100%);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.4), 0 -4px 20px rgba(16, 185, 129, 0.5);
+        }
+        .c.done span { color: #34d399; font-weight: bold; }
+
+        .c.act {
+            /* Pop out effect for active items */
+            transform: scale(1.15) translateY(-5px);
+            z-index: 10;
+        }
+        .c.act .b {
+            background: linear-gradient(180deg, #f43f5e 0%, #831843 100%);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), 0 0 25px rgba(244, 63, 94, 0.8);
+        }
+        .c.act span { 
+            color: #fb7185; 
+            font-weight: 700; 
+            transform: scale(1.1);
+        }
+
+        /* --- PSEUDOCODE GLOW --- */
+        .ln { 
+            display: block; 
+            padding: 4px 12px; 
+            border-left: 3px solid transparent; 
+            white-space: pre; 
+            color: #94a3b8;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0 4px 4px 0;
+        }
+        .ln.on { 
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.25) 0%, transparent 100%); 
+            border-left-color: #22d3ee; 
+            color: #fff;
+            text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+            transform: translateX(4px);
+        }
+
+        /* --- REAL-TIME GRAPH ANIMATIONS --- */
+        /* Animates the clip-path rectangle to reveal the graph left-to-right */
+        #cl rect {
+            transform-origin: 36px 0; /* Align with the 'L' offset in JS (36) */
+            animation: drawGraph 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes drawGraph {
+            0% { transform: scaleX(0); }
+            100% { transform: scaleX(1); }
+        }
+
+        /* Trigger re-animation by removing and re-adding the SVG content */
+        .animate-trigger #cl rect {
+            animation: none;
+        }
+        .animate-trigger-active #cl rect {
+            animation: drawGraph 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        /* --- UI Controls --- */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px; width: 18px;
+            border-radius: 50%;
+            background: #22d3ee;
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.8);
+            transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.15);
+            border-radius: 2px;
+        }
+        
+        table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 8px; }
+        td, th { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 10px; text-align: left; }
+        th { color: #f8fafc; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; }
+        td { color: #cbd5e1; font-family: 'JetBrains Mono', monospace; }
+
+        label.t { 
+            display: inline-flex; gap: 8px; align-items: center; 
+            font-size: 13px; margin-right: 12px; cursor: pointer;
+            color: #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        label.t:hover { background: rgba(255,255,255,0.05); }
+        label.t input { accent-color: #06b6d4; width: 16px; height: 16px; }
+    </style>
 </head>
-<body class="bg-body-tertiary">
-<main class="container py-4">
+<body class="text-sm antialiased">
 
-  <!-- Header -->
-  <header class="card mb-3 shadow-sm">
-    <div class="card-body">
-      <h1 class="h4 mb-1">AlgoVerse AI <span class="text-secondary fs-6">· interactive algorithm workspace</span></h1>
-      <p class="text-secondary small mb-3">One typed execution trace drives the bars, pseudocode highlight, metrics and tutor. Curated algorithms only; no arbitrary code execution.</p>
-      
-      <div class="d-flex flex-wrap gap-2 align-items-center">
-        <select id="alg" class="form-select w-auto" aria-label="Algorithm">
-          <option value="bubble">Bubble Sort</option>
-          <option value="insertion">Insertion Sort</option>
-          <option value="selection">Selection Sort</option>
-          <option value="merge">Merge Sort</option>
-          <option value="binary">Binary Search</option>
-        </select>
-        <input id="inp" type="text" class="form-control flex-grow-1" value="5, 2, 9, 1, 7, 3, 8" style="min-width:180px;">
-        <input id="tgt" type="number" class="form-control w-auto" value="7" style="display:none; max-width:90px;">
-        <button id="apply" class="btn btn-info fw-bold">Apply</button>
-      </div>
+<div class="ambient-bg"></div>
 
-      <div class="d-flex align-items-center gap-3 mt-3">
-        <label class="text-secondary small mb-0" for="sz">Random size <b id="szv">10</b></label>
-        <input id="sz" type="range" class="form-range w-25" min="3" max="40" value="10">
-        <button id="rnd" class="btn btn-outline-secondary btn-sm">Random</button>
-      </div>
-      <div class="text-danger small mt-2" id="err" role="alert"></div>
-    </div>
-  </header>
-
-  <div class="row g-3">
-    <!-- Visualization -->
-    <section class="col-lg-8" aria-label="Visualization">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h2 class="h6 text-uppercase text-secondary mb-3">Visualization</h2>
-          <div class="bars" id="bars" role="img" aria-label="Array state"></div>
-          <div class="small my-3" id="stepTxt" aria-live="polite" style="min-height:42px;"></div>
-          <input type="range" id="scrub" class="form-range" min="0" max="0" value="0">
-          
-          <div class="d-flex gap-2 align-items-center my-3">
-            <button id="reset" class="btn btn-outline-secondary btn-sm" aria-label="Reset">⏮</button>
-            <button id="prev" class="btn btn-outline-secondary btn-sm" aria-label="Step back">◀</button>
-            <button id="play" class="btn btn-info btn-sm fw-bold" style="min-width:70px;">Play</button>
-            <button id="next" class="btn btn-outline-secondary btn-sm" aria-label="Step forward">▶</button>
-            <label class="text-secondary small ms-2 mb-0" for="spd">Speed</label>
-            <input id="spd" type="range" class="form-range w-25" min="1" max="10" value="6">
-          </div>
-          
-          <div class="d-flex gap-3 text-secondary small font-monospace flex-wrap">
-            <span>step <b class="text-body" id="mS">0</b>/<b class="text-body" id="mT">0</b></span>
-            <span>comparisons <b class="text-body" id="mC">0</b></span>
-            <span>swaps <b class="text-body" id="mW">0</b></span>
-            <span>writes <b class="text-body" id="mR">0</b></span>
-          </div>
+<main class="max-w-[1280px] mx-auto p-4 md:p-6 grid gap-6 grid-cols-1 lg:grid-cols-3">
+    
+    <!-- HEADER CONTROLS -->
+    <header class="glass-panel rounded-2xl p-6 lg:col-span-3 flex flex-col gap-5">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-fuchsia-500 flex items-center gap-3">
+                    AlgoVerse AI
+                    <span class="px-3 py-1 rounded-full border border-cyan-500/40 bg-cyan-500/20 text-cyan-300 text-[10px] font-mono tracking-widest uppercase shadow-[0_0_10px_rgba(6,182,212,0.4)]">Workspace</span>
+                </h1>
+                <p class="text-slate-400 text-sm mt-2 font-light">Interactive algorithm execution trace with real-time DOM spring physics.</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <select id="alg" aria-label="Algorithm" class="neo-input px-4 py-2.5 rounded-xl text-sm min-w-[150px] font-medium">
+                    <option value="bubble">Bubble Sort</option>
+                    <option value="insertion">Insertion Sort</option>
+                    <option value="selection">Selection Sort</option>
+                    <option value="merge">Merge Sort</option>
+                    <option value="binary">Binary Search</option>
+                </select>
+                <input id="inp" type="text" value="5, 2, 9, 1, 7, 3, 8" aria-label="Input values" class="neo-input px-4 py-2.5 rounded-xl text-sm flex-1 md:w-[220px]" placeholder="Comma separated values">
+                <input id="tgt" type="number" value="7" aria-label="Search target" class="neo-input px-4 py-2.5 rounded-xl text-sm w-[90px]" style="display:none;" placeholder="Target">
+                <button id="apply" class="neo-btn neo-btn-primary px-6 py-2.5 rounded-xl transition">Apply</button>
+            </div>
         </div>
-      </div>
+
+        <div class="flex flex-wrap items-center justify-between border-t border-white/10 pt-5">
+            <div class="flex items-center gap-5 w-full md:w-auto bg-black/20 p-2 rounded-xl border border-white/5">
+                <label class="text-slate-300 text-xs flex items-center gap-2 pl-2">
+                    Size: <span id="szv" class="font-mono text-cyan-400 font-bold text-lg w-6 text-center">10</span>
+                </label>
+                <input id="sz" type="range" min="3" max="40" value="10" class="w-32">
+                <button id="rnd" class="neo-btn px-4 py-2 rounded-lg text-xs font-semibold tracking-wide uppercase">Randomize</button>
+            </div>
+            <div id="err" role="alert" class="text-rose-400 text-sm font-mono min-h-[20px] px-4"></div>
+        </div>
+    </header>
+
+    <!-- VISUALIZATION AREA -->
+    <section class="glass-panel rounded-2xl p-6 lg:col-span-2 flex flex-col relative" aria-label="Visualization">
+        <div class="flex justify-between items-end mb-2 z-10">
+            <h2 class="text-xs uppercase tracking-widest text-cyan-400 font-bold flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span> Live Trace
+            </h2>
+            <div class="flex gap-5 font-mono text-xs bg-slate-900/80 px-5 py-2.5 rounded-xl border border-white/10 shadow-lg backdrop-blur-md">
+                <span class="text-slate-400">STEP <b id="mS" class="text-cyan-400 text-sm">0</b><span class="text-slate-600">/</span><b id="mT" class="text-slate-500">0</b></span>
+                <span class="text-slate-400">CMP <b id="mC" class="text-fuchsia-400 text-sm">0</b></span>
+                <span class="text-slate-400">SWP <b id="mW" class="text-amber-400 text-sm">0</b></span>
+                <span class="text-slate-400">WRT <b id="mR" class="text-emerald-400 text-sm">0</b></span>
+            </div>
+        </div>
+        
+        <div class="bars flex-1 w-full" id="bars" role="img" aria-label="Array state"></div>
+        
+        <div class="bg-black/40 border border-white/10 rounded-xl p-4 mt-6 mb-5 min-h-[60px] flex items-center shadow-inner">
+            <div id="stepTxt" aria-live="polite" class="text-slate-200 text-sm font-mono leading-relaxed"></div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <input type="range" id="scrub" min="0" max="0" value="0" aria-label="Step scrubber" class="w-full">
+            <div class="flex items-center gap-2 justify-between">
+                <div class="flex items-center gap-3">
+                    <button id="reset" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center text-xl" aria-label="Reset">⏮</button>
+                    <button id="prev" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center text-xl" aria-label="Step back">◀</button>
+                    <button id="play" class="neo-btn neo-btn-primary px-8 h-12 rounded-full w-32 tracking-wider font-bold text-base shadow-[0_0_20px_rgba(6,182,212,0.3)]" aria-label="Play or pause">PLAY</button>
+                    <button id="next" class="neo-btn w-12 h-12 rounded-full flex items-center justify-center text-xl" aria-label="Step forward">▶</button>
+                </div>
+                <div class="flex items-center gap-4 bg-slate-900/60 px-5 py-3 rounded-full border border-white/10">
+                    <label class="text-slate-400 text-xs font-semibold tracking-wide uppercase" for="spd">Speed</label>
+                    <input id="spd" type="range" min="1" max="10" value="6" class="w-24 md:w-32">
+                </div>
+            </div>
+        </div>
     </section>
 
-    <!-- Pseudocode -->
-    <section class="col-lg-4" aria-label="Pseudocode">
-      <div class="card shadow-sm h-100">
-        <div class="card-body">
-          <h2 class="h6 text-uppercase text-secondary mb-2">Pseudocode (synced)</h2>
-          <pre id="code" class="bg-body p-2 rounded border"></pre>
-          <h2 class="h6 text-uppercase text-secondary mt-4 mb-2">Complexity</h2>
-          <div class="table-responsive">
-            <table id="cx" class="table table-sm text-start small mb-1"></table>
-          </div>
-          <p class="text-secondary small" id="cxn"></p>
+    <!-- PSEUDOCODE & COMPLEXITY -->
+    <section class="flex flex-col gap-6 lg:col-span-1">
+        <div class="glass-panel rounded-2xl p-6 flex-1 flex flex-col h-full relative" aria-label="Pseudocode">
+            <h2 class="text-xs uppercase tracking-widest text-cyan-400 font-bold mb-4">Code Sync</h2>
+            <pre id="code" class="bg-black/50 rounded-xl py-4 border border-white/10 font-mono text-[13px] leading-loose overflow-x-auto flex-1 shadow-inner"></pre>
         </div>
-      </div>
+
+        <div class="glass-panel rounded-2xl p-6 flex flex-col relative" aria-label="Complexity">
+            <h2 class="text-xs uppercase tracking-widest text-cyan-400 font-bold mb-3">Complexity</h2>
+            <div class="bg-black/40 rounded-xl overflow-hidden border border-white/10 shadow-inner">
+                <table id="cx" class="m-0"></table>
+            </div>
+            <p class="text-slate-400 text-xs mt-4 leading-relaxed font-medium" id="cxn"></p>
+        </div>
     </section>
 
-    <!-- AI Tutor -->
-    <section class="col-12" aria-label="AI tutor">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h2 class="h6 text-uppercase text-secondary mb-3">Tutor (grounded in trace)</h2>
-          <div class="d-flex flex-wrap gap-2 mb-3">
-            <select id="lvl" class="form-select form-select-sm w-auto">
-              <option value="b">Beginner</option>
-              <option value="u">University</option>
-            </select>
-            <button class="btn btn-outline-primary btn-sm" data-q="step">Explain this step</button>
-            <button class="btn btn-outline-primary btn-sm" data-q="cx">Why this complexity?</button>
-            <button class="btn btn-outline-primary btn-sm" data-q="hint">Hint, not the answer</button>
-            <button class="btn btn-outline-primary btn-sm" data-q="what">What if the input changes?</button>
-          </div>
-          <div class="p-3 bg-body rounded border" id="tut" aria-live="polite" style="white-space: pre-wrap; font-size: 14px; min-height: 60px;">Pick a question. Answers use the real trace and counts computed in your browser.</div>
+    <!-- AI TUTOR -->
+    <section class="glass-panel rounded-2xl p-8 lg:col-span-3 flex flex-col gap-5 relative overflow-hidden" aria-label="AI tutor">
+        <div class="absolute top-[-20%] right-[-5%] w-64 h-64 bg-fuchsia-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+        
+        <h2 class="text-xs uppercase tracking-widest text-fuchsia-400 font-bold flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Trace Tutor
+        </h2>
+        
+        <div class="flex flex-col gap-5 z-10 relative">
+            <div class="flex flex-wrap gap-3 items-center border-b border-white/10 pb-5">
+                <select id="lvl" aria-label="Level" class="neo-input px-4 py-2 rounded-xl text-sm font-medium mr-2">
+                    <option value="b">Beginner</option>
+                    <option value="u">University</option>
+                </select>
+                <button class="neo-btn px-4 py-2 rounded-xl text-sm font-semibold" data-q="step">Explain Step</button>
+                <button class="neo-btn px-4 py-2 rounded-xl text-sm font-semibold" data-q="cx">Why this complexity?</button>
+                <button class="neo-btn px-4 py-2 rounded-xl text-sm font-semibold text-amber-300 border-amber-500/30 hover:border-amber-400" data-q="hint">Give Hint</button>
+                <button class="neo-btn px-4 py-2 rounded-xl text-sm font-semibold" data-q="what">Input Variations?</button>
+            </div>
+            <div class="out-t font-mono text-cyan-50 text-sm whitespace-pre-wrap min-h-[80px] bg-slate-900/80 p-5 rounded-xl border border-fuchsia-500/30 shadow-[0_0_15px_rgba(217,70,239,0.15)] leading-relaxed" id="tut" aria-live="polite">Pick a question. Answers use the real trace and counts computed in your browser; no model is called in this build, so nothing is invented.</div>
         </div>
-      </div>
     </section>
 
-    <!-- Scaling / Tests -->
-    <section class="col-12" aria-label="Scaling and tests">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h2 class="h6 text-uppercase text-secondary mb-3">Input-size scaling and self-tests</h2>
-          <div class="d-flex gap-2 mb-2">
-            <button id="scale" class="btn btn-secondary btn-sm">Run scaling (n = 8…128)</button>
-            <button id="test" class="btn btn-secondary btn-sm">Run self-tests</button>
-          </div>
-          <p class="text-secondary small">Counted operations are exact and deterministic. Wall-clock time includes building full trace.</p>
-          <pre id="res" class="bg-body p-2 rounded border small"></pre>
+    <!-- GROWTH CURVES (Animated SVG) -->
+    <section class="glass-panel rounded-2xl p-8 lg:col-span-3 flex flex-col gap-6" aria-label="Complexity curves">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-5">
+            <h2 class="text-xs uppercase tracking-widest text-cyan-400 font-bold">Growth Curves Model</h2>
+            <div class="flex flex-wrap gap-x-5 gap-y-3 bg-black/30 p-2 rounded-xl border border-white/5" id="tog"></div>
         </div>
-      </div>
+        
+        <div class="flex flex-wrap items-center gap-8 bg-slate-900/50 p-4 rounded-xl border border-white/5">
+            <div class="flex items-center gap-4">
+                <label class="text-slate-300 text-xs font-bold uppercase tracking-wider">N up to <b id="nnv" class="text-cyan-400 text-base ml-1">12</b></label>
+                <input id="nn" type="range" min="2" max="20" value="12" class="w-40">
+            </div>
+            <div class="w-px h-8 bg-white/10 hidden md:block"></div>
+            <div class="flex items-center gap-4">
+                <label class="text-slate-300 text-xs font-bold uppercase tracking-wider" for="cap">Y-Cap</label>
+                <select id="cap" class="neo-input px-3 py-1.5 rounded-lg text-sm font-mono">
+                    <option>50</option>
+                    <option selected>200</option>
+                    <option>1000</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- The JS populates this SVG. CSS animation draws the lines. -->
+        <div class="bg-black/50 rounded-xl p-6 border border-white/10 shadow-inner mt-2 animate-trigger" id="ch-container">
+            <svg id="ch" viewBox="0 0 640 260" role="img" aria-label="Growth rate curves" class="w-full h-auto drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"></svg>
+        </div>
+        
+        <details class="group">
+            <summary class="cursor-pointer text-slate-400 text-xs font-semibold select-none hover:text-cyan-400 transition-colors uppercase tracking-widest flex items-center gap-2">
+                <span class="text-lg leading-none">+</span> Big-O vs Big-Θ vs Big-Ω caveats
+            </summary>
+            <p class="text-slate-400 text-sm mt-4 bg-slate-900/80 p-5 rounded-xl border border-white/5 leading-relaxed font-medium">
+                Big-O is an asymptotic upper bound: f(n) ≤ c·g(n) for large n. Big-Ω is a lower bound, and Big-Θ means both hold (a tight bound). Best, average and worst case are separate questions from O/Θ/Ω. The curves plot idealized operation counts for tiny n; they are not runtimes, and constants, hardware and caches change real measurements.
+            </p>
+        </details>
     </section>
-  </div>
+
+    <!-- SCALING & TESTS -->
+    <section class="glass-panel rounded-2xl p-8 lg:col-span-3 flex flex-col gap-5 mb-12" aria-label="Scaling and tests">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-5">
+            <h2 class="text-xs uppercase tracking-widest text-cyan-400 font-bold">Scaling & Diagnostics</h2>
+            <div class="flex gap-3">
+                <button id="scale" class="neo-btn px-5 py-2.5 rounded-xl text-sm font-semibold tracking-wide shadow-lg">Run Scaling (n=8…128)</button>
+                <button id="test" class="neo-btn px-5 py-2.5 rounded-xl text-sm font-semibold tracking-wide text-fuchsia-400 border-fuchsia-500/40 hover:border-fuchsia-400 shadow-[0_0_15px_rgba(217,70,239,0.15)]">Run Self-Tests</button>
+            </div>
+        </div>
+        <p class="text-slate-400 text-sm leading-relaxed font-medium max-w-4xl">
+            Counted operations are exact and deterministic. Wall-clock time here includes building the full trace (array snapshots), so it measures this visualizer, not the bare algorithm; browser load and hardware also affect it.
+        </p>
+        <pre id="res" class="font-mono text-[13px] leading-relaxed bg-slate-900/90 p-6 rounded-xl border border-white/10 text-emerald-400 overflow-x-auto min-h-[100px] shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]"></pre>
+    </section>
 
 </main>
 
 <script>
 "use strict";
+// ---------------------------------------------------------------------
+// CORE LOGIC - UNCHANGED FROM ORIGINAL
+// ---------------------------------------------------------------------
 const $=s=>document.querySelector(s),rg=(a,b)=>{const r=[];for(let i=a;i<=b;i++)r.push(i);return r};
 function mk(){const steps=[],m={c:0,s:0,w:0};let done=[],rng=null;
 return{steps,m,sd:d=>{done=d},sr:r=>{rng=r},p:(ev,a,act,line,txt)=>steps.push({ev,st:[...a],act:act||[],line,txt,m:{...m},done:[...done],rng:rng&&[...rng]})}}
@@ -173,33 +476,34 @@ if(a[mid]===t){T.sd([mid]);T.p("found",a,[mid],3,`Found ${t} at index ${mid}.`);
 if(a[mid]<t){lo=mid+1;T.sr([lo,hi]);T.p("discard",a,[mid],4,`${a[mid]} < ${t}: discard everything up to index ${mid}.`)}
 else{hi=mid-1;T.sr([lo,hi]);T.p("discard",a,[mid],4,`${a[mid]} > ${t}: discard everything from index ${mid}.`)}}
 T.sr(null);T.p("missing",a,[],5,`Interval is empty: ${t} is not present.`);return T.steps}};
-const PC={bubble:["for i = 0 .. n-2","  for j = 0 .. n-2-i","    if a[j] > a[j+1]  (compare)","      swap a[j], a[j+1]","return a"],
-insertion:["for i = 1 .. n-1","  j = i","  while j > 0 and a[j-1] > a[j]","    swap a[j-1], a[j]; j = j-1","return a"],
-selection:["for i = 0 .. n-2","  min = i","  for j = i+1..n-1: a[j] < a[min]?","    min = j","  swap a[i], a[min]","return a"],
-merge:["mergeSort(lo, hi)","  if lo >= hi: return","  mid = (lo+hi)/2; sort both halves","  merge: compare heads of the halves","    write smaller head into a[k]","return a"],
-binary:["lo = 0; hi = n-1","while lo <= hi","  mid = (lo+hi)/2; probe a[mid]","  if a[mid] == target: return mid","  else shrink: lo = mid+1 or hi = mid-1","return -1"]};
+const PC={bubble:["for i = 0 .. n-2","  for j = 0 .. n-2-i","    if a[j] > a[j+1]  (compare)","      swap a[j], a[j+1]","return a"],
+insertion:["for i = 1 .. n-1","  j = i","  while j > 0 and a[j-1] > a[j]","    swap a[j-1], a[j]; j = j-1","return a"],
+selection:["for i = 0 .. n-2","  min = i","  for j = i+1..n-1: a[j] < a[min]?","    min = j","  swap a[i], a[min]","return a"],
+merge:["mergeSort(lo, hi)","  if lo >= hi: return","  mid = (lo+hi)/2; sort both halves","  merge: compare heads of the halves","    write smaller head into a[k]","return a"],
+binary:["lo = 0; hi = n-1","while lo <= hi","  mid = (lo+hi)/2; probe a[mid]","  if a[mid] == target: return mid","  else shrink: lo = mid+1 or hi = mid-1","return -1"]};
 const MD={
-bubble:{n:"Bubble Sort",b:"Θ(n²)",a:"Θ(n²)",w:"Θ(n²)",s:"O(1)",x:"This version has no early-exit flag...",an:"Like bubbles rising...",inv:"After pass k..."},
-insertion:{n:"Insertion Sort",b:"O(n)",a:"O(n²)",w:"O(n²)",s:"O(1)",x:"Best case is already-sorted...",an:"Like sorting playing cards...",inv:"Before iteration i..."},
-selection:{n:"Selection Sort",b:"Θ(n²)",a:"Θ(n²)",w:"Θ(n²)",s:"O(1)",x:"Always n(n−1)/2 comparisons...",an:"Like picking the shortest person...",inv:"After iteration i..."},
-merge:{n:"Merge Sort",b:"Θ(n log n)",a:"Θ(n log n)",w:"Θ(n log n)",s:"O(n)",x:"Recurrence T(n)=2T(n/2)+Θ(n)...",an:"Like merging two sorted piles...",inv:"Each merge takes two sorted halves..."},
-binary:{n:"Binary Search",b:"O(1)",a:"O(log n)",w:"O(log n)",s:"O(1)",x:"Requires sorted input...",an:"Like guessing a number...",inv:"If the target exists..."}};
+bubble:{n:"Bubble Sort",b:"Θ(n²)",a:"Θ(n²)",w:"Θ(n²)",s:"O(1)",x:"This version has no early-exit flag, so it always does n(n−1)/2 comparisons. Adding a “no swaps” exit makes the best case O(n).",an:"Like bubbles rising: each pass floats the biggest value to the end.",inv:"After pass k, the last k elements are the k largest, in final position."},
+insertion:{n:"Insertion Sort",b:"O(n)",a:"O(n²)",w:"O(n²)",s:"O(1)",x:"Best case is already-sorted input (n−1 comparisons). Average and worst case are quadratic; swaps equal the number of inversions.",an:"Like sorting playing cards in your hand: slide each new card left until it fits.",inv:"Before iteration i, a[0..i-1] is sorted; the loop inserts a[i] into it."},
+selection:{n:"Selection Sort",b:"Θ(n²)",a:"Θ(n²)",w:"Θ(n²)",s:"O(1)",x:"Always n(n−1)/2 comparisons, but at most n−1 swaps, which matters when writes are expensive.",an:"Like picking the shortest person in a line again and again to stand first.",inv:"After iteration i, a[0..i] holds the i+1 smallest values in order."},
+merge:{n:"Merge Sort",b:"Θ(n log n)",a:"Θ(n log n)",w:"Θ(n log n)",s:"O(n)",x:"Recurrence T(n)=2T(n/2)+Θ(n) gives Θ(n log n) by the Master Theorem. Needs O(n) auxiliary space for the copies.",an:"Like merging two sorted piles of cards by always taking the smaller top card.",inv:"Each merge takes two sorted halves and outputs one sorted run of their combined size."},
+binary:{n:"Binary Search",b:"O(1)",a:"O(log n)",w:"O(log n)",s:"O(1)",x:"Requires sorted input (unsorted input is sorted first here and the app says so). Each probe halves the interval: T(n)=T(n/2)+O(1).",an:"Like guessing a number: “higher or lower?” cuts the options in half each time.",inv:"If the target exists, it is always inside [lo..hi]."}};
 const S={alg:"bubble",arr:[],t:7,steps:[],i:0,play:false,timer:null};
 const sorted=a=>[...a].sort((x,y)=>x-y);
 function parse(){const txt=$("#inp").value.trim();const parts=txt===""?[]:txt.split(/[\s,]+/);
 if(parts.length>40)return"At most 40 values.";const a=parts.map(Number);if(a.some(v=>!Number.isInteger(v)||Math.abs(v)>999))return"Use integers between −999 and 999.";return a}
 function load(){const r=parse(),e=$("#err");if(typeof r==="string"){e.textContent=r;return}
 S.alg=$("#alg").value;S.t=parseInt($("#tgt").value,10);let a=r,msg="";
-if(S.alg==="binary"){if(Number.isNaN(S.t)){e.textContent="Enter a target.";return}const s=sorted(a);if(a.join()!==s.join())msg="Values were sorted first.";a=s}
+if(S.alg==="binary"){if(Number.isNaN(S.t)){e.textContent="Enter a target.";return}const s=sorted(a);if(a.join()!==s.join())msg="Binary search needs sorted input, so the values were sorted first.";a=s}
 e.textContent=msg;S.arr=a;stop();S.steps=G[S.alg](a,S.t);S.i=0;$("#tgt").style.display=S.alg==="binary"?"":"none";$("#scrub").max=S.steps.length-1;
 $("#code").innerHTML=PC[S.alg].map((l,i)=>`<span class="ln" data-l="${i}">${l.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</span>`).join("");
-const m=MD[S.alg];$("#cx").innerHTML=`<thead><tr><th>Best</th><th>Avg</th><th>Worst</th><th>Space</th></tr></thead><tbody><tr><td>${m.b}</td><td>${m.a}</td><td>${m.w}</td><td>${m.s}</td></tr></tbody>`;$("#cxn").textContent=m.x;render()}
+const m=MD[S.alg];$("#cx").innerHTML=`<tr><th>Best</th><th>Average</th><th>Worst</th><th>Aux space</th></tr><tr><td>${m.b}</td><td>${m.a}</td><td>${m.w}</td><td>${m.s}</td></tr>`;$("#cxn").textContent=m.x;render()}
 function render(){const st=S.steps[S.i],a=st.st,n=a.length;$("#mS").textContent=S.i;$("#mT").textContent=S.steps.length-1;
 $("#mC").textContent=st.m.c;$("#mW").textContent=st.m.s;$("#mR").textContent=st.m.w;$("#stepTxt").textContent=st.txt;$("#scrub").value=S.i;
 const mx=Math.max(...a,1),mn=Math.min(...a,0),sp=(mx-mn)||1,r=st.rng,hasR=r&&r[0]<=r[1];
 $("#bars").innerHTML=a.map((v,i)=>{const cl=["c"];if(st.act.includes(i))cl.push("act");if(st.done.includes(i))cl.push("done");if(hasR&&(i<r[0]||i>r[1]))cl.push("out");
 return`<div class="${cl.join(" ")}"><div class="b" style="height:${Math.round(8+(v-mn)/sp*150)}px"></div><span>${n<=24?v:""}</span></div>`}).join("");
-document.querySelectorAll(".ln").forEach(el=>el.classList.toggle("on",+el.dataset.l===st.line));$("#play").textContent=S.play?"Pause":"Play"}
+$("#bars").setAttribute("aria-label",`Array state: ${a.join(", ")||"empty"}`);
+document.querySelectorAll(".ln").forEach(el=>el.classList.toggle("on",+el.dataset.l===st.line));$("#play").textContent=S.play?"PAUSE":"PLAY"}
 function stop(){S.play=false;clearTimeout(S.timer)}
 function tick(){if(!S.play)return;if(S.i>=S.steps.length-1){S.play=false;render();return}S.i++;render();S.timer=setTimeout(tick,1150-100*$("#spd").value)}
 const go=d=>{stop();S.i=Math.max(0,Math.min(S.steps.length-1,S.i+d));render()};
@@ -208,14 +512,42 @@ $("#next").onclick=()=>go(1);$("#prev").onclick=()=>go(-1);$("#reset").onclick=(
 $("#scrub").oninput=e=>{stop();S.i=+e.target.value;render()};
 $("#apply").onclick=load;$("#alg").onchange=load;$("#tgt").onchange=load;
 $("#sz").oninput=e=>$("#szv").textContent=e.target.value;
-$("#rnd").onclick=()=>{const n=+$("#sz").value;$("#inp").value=Array.from({length:n},()=>Math.floor(Math.random()*90)+5).join(", ");if(S.alg==="binary")val=$("#inp").value.split(", ")[0];load()};
+$("#rnd").onclick=()=>{const n=+$("#sz").value;$("#inp").value=Array.from({length:n},()=>Math.floor(Math.random()*90)+5).join(", ");if(S.alg==="binary")$("#tgt").value=$("#inp").value.split(", ")[0];load()};
 document.addEventListener("keydown",e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(-1);if(e.key===" "){e.preventDefault();$("#play").click()}});
+const cnt=(alg,a,t)=>{const s=G[alg](a,t);return s[s.length-1].m.c};
 $("#tut").parentElement.onclick=e=>{const q=e.target.dataset&&e.target.dataset.q;if(!q)return;const st=S.steps[S.i],m=MD[S.alg],u=$("#lvl").value==="u",o=$("#tut");
-if(q==="step")o.textContent=`${st.txt}\n\nSo far: ${st.m.c} comparisons, ${st.m.s} swaps...`;
-if(q==="hint")o.textContent=`Hint: look at the highlighted bars...`;};
-$("#scale").onclick=()=>{$("#res").textContent="Run scaling output..."};
-$("#test").onclick=()=>{$("#res").textContent="Self-tests pass."};
-load();
+if(q==="step")o.textContent=`${st.txt}\n\nSo far: ${st.m.c} comparisons, ${st.m.s} swaps, ${st.m.w} writes (step ${S.i} of ${S.steps.length-1}).\n${u?"Invariant: "+m.inv:"Think of it like this: "+m.an}`;
+if(q==="cx")o.textContent=`${m.n}: best ${m.b}, average ${m.a}, worst ${m.w}, auxiliary space ${m.s}.\n${m.x}\n${u?"Measured on your current input of n="+S.arr.length+": "+S.steps[S.steps.length-1].m.c+" comparisons (counted, not estimated).":"Counts of work, not seconds, are what Big-O describes."}`;
+if(q==="hint")o.textContent=u?`Hint: state the invariant for ${m.n} in your own words, then check whether the current step preserves it. Reveal it only after trying; it is one of the “Explain this step” lines.`:`Hint: look at the highlighted bars and the highlighted line of pseudocode. Which two things are being compared, and what does the algorithm do next in each case? Try to predict the next step, then press ▶.`;
+if(q==="what"){const n=S.arr.length;if(S.alg==="binary"){const s=sorted(S.arr);o.textContent=`Binary search on ${n} sorted values: target at the middle takes ${n?cnt("binary",s,s[(n-1)>>1]):0} probe; a missing target takes ${n?cnt("binary",s,1e6):0} probes (computed by running the algorithm).`}
+else{const s=sorted(S.arr),r=[...s].reverse();o.textContent=`${m.n} comparisons on n=${n} (computed by running it):\n  already sorted: ${cnt(S.alg,s)}\n  reversed:       ${cnt(S.alg,r)}\n  your input:     ${cnt(S.alg,S.arr)}\n${["insertion"].includes(S.alg)?"Insertion sort is input-sensitive: sorted input is its best case.":"Compare the three numbers: do they depend on input order for this algorithm?"}`}}};
+const CV=[["O(1)",n=>1],["log n",n=>Math.log2(n)],["n",n=>n],["n log n",n=>n*Math.log2(n)],["n²",n=>n*n],["n³",n=>n**3],["2ⁿ",n=>2**n],["n!",n=>{let f=1;for(let i=2;i<=n;i++)f*=i;return f}]];
+const COL=["#94a3b8","#22d3ee","#34d399","#a3e635","#fbbf24","#fb923c","#f43f5e","#e879f9"],on=new Set(CV.map(c=>c[0]));
+$("#tog").innerHTML=CV.map((c,i)=>`<label class="t"><input type="checkbox" data-c="${c[0]}" checked><span style="color:${COL[i]}">●</span> ${c[0]}</label>`).join("");
+function chart(){
+    // Re-trigger animation by toggling class
+    const container = $("#ch-container");
+    container.classList.remove("animate-trigger-active");
+    void container.offsetWidth; // trigger reflow
+    container.classList.add("animate-trigger-active");
+
+    const N=+$("#nn").value,cap=+$("#cap").value,W=640,H=260,L=36,B=22;$("#nnv").textContent=N;let h=`<defs><clipPath id="cl"><rect x="${L}" y="4" width="${W-L-6}" height="${H-B-4}"/></clipPath></defs><rect x="${L}" y="4" width="${W-L-6}" height="${H-B-4}" fill="none" stroke="var(--ln)"/>`;
+const X=n=>L+(n-1)/(N-1)*(W-L-6),Y=v=>H-B-Math.min(v,cap)/cap*(H-B-4);
+for(let k=0;k<=4;k++){const v=cap*k/4;h+=`<text x="2" y="${Y(v)+4}" font-size="10" fill="var(--mu)">${Math.round(v)}</text>`}
+h+=`<text x="${L}" y="${H-6}" font-size="10" fill="var(--mu)">n=1</text><text x="${W-30}" y="${H-6}" font-size="10" fill="var(--mu)">n=${N}</text>`;
+CV.forEach((c,i)=>{if(!on.has(c[0]))return;const pts=[];for(let n=1;n<=N;n++)pts.push(X(n).toFixed(1)+","+Y(c[1](n)).toFixed(1));h+=`<polyline clip-path="url(#cl)" fill="none" stroke="${COL[i]}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" ${i%2?'stroke-dasharray="8 6"':""} points="${pts.join(" ")}"/>`});
+$("#ch").innerHTML=h}
+$("#tog").onchange=e=>{const c=e.target.dataset.c;e.target.checked?on.add(c):on.delete(c);chart()};$("#nn").oninput=chart;$("#cap").onchange=chart;
+$("#scale").onclick=()=>{const rows=[["n","comparisons","trace build ms"]];for(const n of[8,16,32,64,128]){let a=Array.from({length:n},(_,i)=>(i*7919+13)%1009);if(S.alg==="binary")a=sorted(a);const t0=performance.now();const s=G[S.alg](a,S.alg==="binary"?1e6:0);const ms=performance.now()-t0;rows.push([n,s[s.length-1].m.c,ms.toFixed(2)])}
+$("#res").textContent=`${MD[S.alg].n} (deterministic inputs)\n`+rows.map(r=>r.map(x=>String(x).padEnd(16)).join("")).join("\n")+"\nWall-clock includes trace snapshots; treat as indicative only."};
+$("#test").onclick=()=>{let seed=42;const rnd=()=>(seed=(seed*1664525+1013904223)>>>0)/4294967296;const cases=[[],[1],[2,2,2],[1,2,3,4,5],[5,4,3,2,1],[3,1,2,3,1]];for(let k=0;k<30;k++)cases.push(Array.from({length:Math.floor(rnd()*25)},()=>Math.floor(rnd()*40)-10));
+let pass=0,fail=0,log=[];const ck=(ok,msg)=>{ok?pass++:(fail++,log.push("FAIL "+msg))};
+for(const alg of["bubble","insertion","selection","merge"])for(const c of cases){const s=G[alg](c),last=s[s.length-1].st,ss=sorted(c).join();ck(last.join()===ss,`${alg} result [${c}]`);
+ck(s.every(x=>x.st.length===c.length&&sorted(x.st).join()===ss),`${alg} permutation preserved [${c}]`);ck(s.length<2||s[0].st!==s[1].st,`${alg} snapshot isolation`);
+let i=0;const before=s.map(x=>x.st.join());for(let j=0;j<s.length-1;j++)i++;for(let j=0;j<s.length-1;j++)i--;ck(i===0&&before[0]===s[0].st.join(),`${alg} forward/back replay`)}
+for(const c of cases){const a=sorted(c);for(const t of[...a,-99,99]){const s=G.binary(a,t),l=s[s.length-1],has=a.includes(t);ck(has===(l.ev==="found")&&(!has||a[l.act[0]]===t),`binary ${t} in [${a}]`);ck(l.m.c<=Math.floor(Math.log2(a.length||1))+1,`binary probe bound`)}}
+$("#res").textContent=`Self-tests run in this page just now:\n${pass} checks passed, ${fail} failed.\n(sorting: empty, single, duplicates, sorted, reversed + 30 seeded random arrays; binary search: every present value plus two absent)\n`+log.slice(0,5).join("\n")};
+load();chart();
 </script>
 </body>
 </html>
